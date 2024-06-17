@@ -5,6 +5,25 @@
 {% endblock %}
 
 {% block main %}
-
+<select name="groups">
+    <option disabled selected value="">Groups</option>
+    {% for group in groups %}
+        <option value="{{ group['group_name'] }}">{{ group["group_name"] }}</option>
+    {% endfor %}
+</select>
+<table>
+    <tr>
+        <th>Member Name</th>
+        <th>Owes</th>
+    </tr>
+    <!-- {% for stock in stocks %}
+        <tr>
+            <td>{{ stock.symbol }}</td>
+            <td>{{ stock.shares }}</td>
+            <td>${{ stock.price | usd }}</td>
+            <td>${{ stock.total_value | usd }}</td>
+        </tr>
+    {% endfor %} -->
+</table>
 {% endblock %}
 

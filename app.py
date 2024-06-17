@@ -51,7 +51,9 @@ def close_db(exception):
 @app.route("/")
 @login_required
 def index():
-    return render_template("index.html")
+    # Shows group, people in group, what their expenses are within group
+
+    return apology("TODO", 403)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -155,3 +157,103 @@ def register():
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("register.html")
+    
+
+"""Add remove member too"""
+@app.route("/group", methods=["GET", "POST"])
+def group():
+    # Create group name OR pick group and add member
+    if request.method == "POST":
+        # Get input
+        create_group_name = request.form.get("group_name")
+        chosen_group = request.form.get("groups")
+
+        # Ensure group name submitted
+        if not create_group_name and not chosen_group:
+            return apology("must submit group name or select group")
+        
+        # Get database
+        db = get_db()
+        cursor = db.cursor()
+
+        # Create new group
+        if create_group_name and not chosen_group:
+            cursor.execute("INSERT INTO groups (creator_id, group_name) VALUES (?, ?);", (session["user_id"], create_group_name))
+            db.commit()
+            return redirect("/group")
+        
+        # Add members to group
+        elif not create_group_name and chosen_group:
+            member = request.form.get("member")
+            cursor.execute("SELECT id FROM groups WHERE group_name = ?;", (chosen_group,))
+            group = cursor.fetchone()
+
+            group_id = group["id"]
+            cursor.execute("INSERT INTO group_members (group_id, user_id, member_name) VALUES (?, ?, ?)", (group_id, session["user_id"], member))
+            db.commit()
+            return redirect("/group")
+    
+    # User reached route via GET (as by clicking a link or via redirect)
+    else:    
+        # Get database
+        db = get_db().cursor()
+        group_name = db.execute("SELECT group_name FROM groups WHERE creator_id = ?;", (session["user_id"],)).fetchall()
+
+         # Display group names in the select inputs
+        return render_template("group.html", groups=group_name)
+
+
+@app.route("/split", methods=["GET", "POST"])
+def split():
+    # Choose group, choose members of group, put expense
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+        # Get inputs
+        group_name = request.form.get("groups")
+        amount = request.form.get("amount")
+
+        # Ensure group name is submitted
+        if not group_name:
+            return apology("must select group name", 403)
+        
+        # Get database
+        db = get_db().cursor()
+
+        # Get input from checkboxes
+        group = db.execute("SELECT id FROM groups WHERE group_name = ?;", (group_name,)).fetchone()
+        group_id = group["id"]
+        num_names = db.execute("SELECT member_name FROM group_members WHERE user_id = ? AND group_id = ?", (session["user_id"], group_id,)).fetchall()
+        
+        # Show group member names for checkbox
+        render_template("split.html", names = num_names)
+
+        # Ensure amount is submitted
+        if not amount:
+            return apology("must submit amount", 403)
+        
+        # Add expense to members by calculating split
+        
+
+        # Redirect
+        return redirect("/split")
+
+    # User reached route via GET (as by clicking a link or via redirect)    
+    else:    
+        # Get database
+        db = get_db().cursor()
+        group_name = db.execute("SELECT group_name FROM groups WHERE creator_id = ?;", (session["user_id"],)).fetchall()
+
+        # Display group names in the select inputs
+        return render_template("split.html", groups = group_name)
+
+
+@app.route("/pay", methods=["GET", "POST"])
+def pay():
+    # 
+    return apology("TODO", 403)
+
+
+@app.route("/activity", methods=["GET", "POST"])
+def activity():
+    # Shows all transactions for all groups
+    return apology("TODO", 403)
