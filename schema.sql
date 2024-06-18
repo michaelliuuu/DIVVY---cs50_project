@@ -33,7 +33,9 @@ CREATE TABLE group_members (
 CREATE TABLE expenses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     group_id INTEGER NOT NULL,
+    group_member_id INTEGER NOT NULL,
     description TEXT NOT NULL,
-    amount INTEGER NOT NULL,
-    FOREIGN KEY (group_id) REFERENCES groups(id)
+    amount NUMERIC NOT NULL DEFAULT 0.00,
+    FOREIGN KEY (group_id) REFERENCES groups(id),
+    FOREIGN KEY (group_member_id) REFERENCES group_members(id)
 );
