@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS groups;
 DROP TABLE IF EXISTS group_members;
 DROP TABLE IF EXISTS expenses;
+DROP TABLE IF EXISTS transactions;
 
 -- Users table
 CREATE TABLE users (
@@ -38,4 +39,17 @@ CREATE TABLE expenses (
     amount NUMERIC NOT NULL DEFAULT 0.00,
     FOREIGN KEY (group_id) REFERENCES groups(id),
     FOREIGN KEY (group_member_id) REFERENCES group_members(id)
+);
+
+-- Transactions table
+CREATE TABLE transactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    transaction_id INTEGER NOT NULL,
+    action TEXT NOT NULL, 
+    group_name TEXT NOT NULL,
+    group_member TEXT NOT NULL,
+    description TEXT NOT NULL,
+    amount NUMERIC NOT NULL,
+    timestamp DATE DEFAULT (datetime('now','localtime')),
+    FOREIGN KEY (transaction_id) REFERENCES users(id)
 );

@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Activity
+{% endblock %}
+
+{% block main %}
+<table>
+    <tr>
+        <th>Action</th>
+        <th>Group Name</th>
+        <th>Member Name</th>
+        <th>Description</th>
+        <th>Amount</th>
+        <th>Date</th>
+    </tr>
+    {% for table in tables %}
+        <tr>
+            <td>{{ table["action"] }}</td>
+            <td>{{ table["group_name"] }}</td>
+            <td>{{ table["group_member"] }}</td>
+            <td>{{ table["description"] }}</td>
+            <td>${{ table["amount"] }}</td>
+            <td>{{ table["timestamp"] }}</td>
+        </tr>
+    {% endfor %}
+</table>
+{% endblock %}
+

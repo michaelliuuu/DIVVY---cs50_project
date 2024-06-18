@@ -29,9 +29,14 @@ def setup_db():
     Setup database connection
     """
     connection = sqlite3.connect("database.db")
-    with open('schema.sql') as f:
-        connection.executescript(f.read())
-    connection.close()
+    try:
+        with open('schema.sql') as f:
+            connection.executescript(f.read())
+        print("Database setup completed successfully.")
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+    finally:
+        connection.close()
 
 def get_db():
     """
@@ -56,6 +61,7 @@ def close_db(exception):
 @login_required
 def index():
     # Shows group, people in group, what their expenses are within group
+    
 
     return apology("TODO", 403)
 
@@ -80,7 +86,7 @@ def login():
         # Query database for username
         db = get_db()
         cursor = db.cursor()
-        cursor.execute("SELECT * FROM users WHERE username = ?", (request.form.get("username"),))
+        cursor.execute("SELECT * FROM users WHERE username = ?;", (request.form.get("username"),))
         row = cursor.fetchone()
 
         # Ensure username exists and password is correct
@@ -124,7 +130,7 @@ def register():
         # Ensure no duplicate username
         db = get_db()
         cursor = db.cursor()
-        cursor.execute("SELECT username FROM users WHERE username = ?", (request.form.get("username"),))
+        cursor.execute("SELECT username FROM users WHERE username = ?;", (request.form.get("username"),))
         username = cursor.fetchone()
 
         if username is not None:
@@ -148,7 +154,7 @@ def register():
         # Attempt to insert the new user into the database
         try:
             cursor.execute(
-                "INSERT INTO users (username, hash) VALUES (?, ?)",
+                "INSERT INTO users (username, hash) VALUES (?, ?);",
                 (request.form.get("username"), hash_password)
             )
             db.commit()
@@ -163,7 +169,6 @@ def register():
         return render_template("register.html")
     
 
-"""Add remove member too"""
 @app.route("/group", methods=["GET", "POST"])
 def group():
     # Create group name OR pick group and add member
@@ -194,7 +199,7 @@ def group():
             group = cursor.fetchone()
 
             group_id = group["id"]
-            cursor.execute("INSERT INTO group_members (group_id, user_id, member_name) VALUES (?, ?, ?)", (group_id, session["user_id"], member))
+            cursor.execute("INSERT INTO group_members (group_id, user_id, member_name) VALUES (?, ?, ?);", (group_id, session["user_id"], member))
             db.commit()
             flash("Member added")
             return redirect("/group")
@@ -224,7 +229,7 @@ def split():
         db = get_db().cursor()
         group = db.execute("SELECT id FROM groups WHERE creator_id = ? AND group_name = ?;", (session["user_id"], group_name,)).fetchone()
         group_id = group["id"]
-        members_name = db.execute("SELECT member_name FROM group_members WHERE user_id = ? AND group_id = ?", (session["user_id"], group_id,)).fetchall()
+        members_name = db.execute("SELECT member_name FROM group_members WHERE user_id = ? AND group_id = ?;", (session["user_id"], group_id,)).fetchall()
 
         # Render splitting html
         return render_template("splitting.html", names=members_name, group_name=group_name)
@@ -282,28 +287,30 @@ def splitting():
 
         # Insert the split amount for each member into the expenses table
         for member_name in selected_members:
-            group_member = db.execute("SELECT id FROM group_members WHERE group_id = ? AND member_name = ?", (group_id, member_name)).fetchone()
+            group_member = db.execute("SELECT id FROM group_members WHERE group_id = ? AND member_name = ?;", (group_id, member_name)).fetchone()
             group_member_id = group_member["id"]
-            db.execute("INSERT INTO expenses (group_id, group_member_id, description, amount) VALUES (?, ?, ?, ?)", (group_id, group_member_id, description, result))
+            db.execute("INSERT INTO expenses (group_id, group_member_id, description, amount) VALUES (?, ?, ?, ?);", (group_id, group_member_id, description, result))
 
             # Check if there is already an expense entry for this member
-            existing_expense = db.execute("SELECT amount FROM expenses WHERE group_id = ? AND group_member_id = ? AND description = ?", (group_id, group_member_id, description)).fetchone()
+            existing_expense = db.execute("SELECT amount FROM expenses WHERE group_id = ? AND group_member_id = ? AND description = ?;", (group_id, group_member_id, description)).fetchone()
 
             if existing_expense:
                 # Update the existing expense amount by adding the result
                 new_amount = existing_expense["amount"] + result
-                db.execute("UPDATE expenses SET amount = ? WHERE group_id = ? AND group_member_id = ? AND description = ?", (new_amount, group_id, group_member_id, description))
+                db.execute("UPDATE expenses SET amount = ? WHERE group_id = ? AND group_member_id = ? AND description = ?;", (new_amount, group_id, group_member_id, description))
             else:
                 # Insert the new expense if no existing entry is found
-                db.execute("INSERT INTO expenses (group_id, group_member_id, description, amount) VALUES (?, ?, ?, ?)", (group_id, group_member_id, description, result))
+                db.execute("INSERT INTO expenses (group_id, group_member_id, description, amount) VALUES (?, ?, ?, ?);", (group_id, group_member_id, description, result))
 
+            # Add to activity
+            db.execute("INSERT INTO transactions (transaction_id, action, group_name, group_member, description, amount) VALUES (?, ?, ?, ?, ?, ?);", (session["user_id"], "OWE", group_name, member_name, description, result))
 
         get_db().commit() 
 
         flash("Expense split")
 
         # Render splitting html
-        members_name = db.execute("SELECT member_name FROM group_members WHERE user_id = ? AND group_id = ?", (session["user_id"], group_id)).fetchall()
+        members_name = db.execute("SELECT member_name FROM group_members WHERE user_id = ? AND group_id = ?;", (session["user_id"], group_id)).fetchall()
         return render_template("splitting.html", names=members_name, group_name=group_name)
 
 
@@ -322,7 +329,7 @@ def pay():
         db = get_db().cursor()
         group = db.execute("SELECT id FROM groups WHERE creator_id = ? AND group_name = ?;", (session["user_id"], group_name,)).fetchone()
         group_id = group["id"]
-        members_name = db.execute("SELECT member_name FROM group_members WHERE user_id = ? AND group_id = ?", (session["user_id"], group_id,)).fetchall()
+        members_name = db.execute("SELECT member_name FROM group_members WHERE user_id = ? AND group_id = ?;", (session["user_id"], group_id,)).fetchall()
 
         # Render splitting html
         return render_template("paying.html", names=members_name, group_name=group_name)
@@ -370,9 +377,9 @@ def paying():
         group_id = group["id"]
 
         # Get the total outstanding expenses for the member
-        group_member = db.execute("SELECT id FROM group_members WHERE group_id = ? AND member_name = ?", (group_id, selected_member)).fetchone()
+        group_member = db.execute("SELECT id FROM group_members WHERE group_id = ? AND member_name = ?;", (group_id, selected_member)).fetchone()
         group_member_id = group_member["id"]
-        total_expenses = db.execute("SELECT SUM(amount) as total FROM expenses WHERE group_id = ? AND group_member_id = ?", (group_id, group_member_id)).fetchone()["total"]
+        total_expenses = db.execute("SELECT SUM(amount) as total FROM expenses WHERE group_id = ? AND group_member_id = ?;", (group_id, group_member_id)).fetchone()["total"]
 
         # Ensure amount is not more than their expense
         if amount > total_expenses:
@@ -381,11 +388,16 @@ def paying():
         # Convert amount to negative for payment
         amount = -amount
 
-        # Retrieve the original description and append "paid"
-        original_description = db.execute("SELECT description FROM expenses WHERE group_id = ? AND group_member_id = ? ORDER BY id DESC LIMIT 1", (group_id, group_member_id)).fetchone()["description"]
+        # Retrieve the original description
+        original_description = db.execute("SELECT description FROM expenses WHERE group_id = ? AND group_member_id = ? ORDER BY id DESC LIMIT 1;", (group_id, group_member_id)).fetchone()["description"]
 
         # Insert negative amount for the member into the expenses table
         db.execute("INSERT INTO expenses (group_id, group_member_id, description, amount) VALUES (?, ?, ?, ?)", (group_id, group_member_id, original_description, amount))
+
+        # Add to activity
+        amount *= -1
+        changed_description = original_description + " | PAYING"
+        db.execute("INSERT INTO transactions (transaction_id, action, group_name, group_member, description, amount) VALUES (?, ?, ?, ?, ?, ?)", (session["user_id"], "PAY", group_name, selected_member, original_description, amount))
 
         get_db().commit() 
 
@@ -395,14 +407,16 @@ def paying():
             flash("Expense being paid")
 
         # Render splitting html
-        members_name = db.execute("SELECT member_name FROM group_members WHERE user_id = ? AND group_id = ?", (session["user_id"], group_id)).fetchall()
+        members_name = db.execute("SELECT member_name FROM group_members WHERE user_id = ? AND group_id = ?;", (session["user_id"], group_id)).fetchall()
         return render_template("paying.html", names=members_name, group_name=group_name)
 
 
 @app.route("/activity", methods=["GET", "POST"])
 def activity():
     # Shows all transactions for all groups
-    return apology("TODO", 403)
+    db = get_db().cursor()
+    tables = db.execute("SELECT action, group_name, group_member, description, amount, timestamp FROM transactions WHERE transaction_id = ?;", (session["user_id"],))
+    return render_template("activity.html", tables=tables)
 
 
 if __name__ == '__main__':
