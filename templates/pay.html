@@ -6,6 +6,8 @@
 
 {% block main %}
     <form action="/pay" method="post">
+        <br><br>
+        <h3>Select Group</h3><br>
         <select name="groups">
             <option disabled selected value="">Groups</option>
             {% for group in groups %}

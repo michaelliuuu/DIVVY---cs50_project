@@ -197,8 +197,8 @@ def group():
         chosen_group = request.form.get("groups")
 
         # Ensure group name submitted
-        if not create_group_name and not chosen_group:
-            return apology("must submit group name or select group")
+        if (not create_group_name and not chosen_group) or (create_group_name and chosen_group):
+            return apology("must submit group name or select group", 403)
         
         # Get database
         db = get_db()

@@ -6,6 +6,8 @@
 
 {% block main %}
     <form action="/paying" method="post">
+        <br><br>
+        <h3>Choose Member to Pay Off Expense</h3><br>
         <input type="hidden" name="group_name" value="{{ group_name }}">
         <div class="form-check">
             {% for group_member in names %}
@@ -13,7 +15,8 @@
                 <label class="form-check-label" for="{{ group_member['member_name'] }}">{{ group_member['member_name'] }}</label>
                 <br>
             {% endfor %}
-          </div>
+        </div>
+        <br><br>
         <div class="mb-3">
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="amount" placeholder="Enter amount" type="text">
         </div>
