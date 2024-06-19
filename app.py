@@ -60,10 +60,29 @@ def close_db(exception):
 @app.route("/")
 @login_required
 def index():
-    # Shows group, people in group, what their expenses are within group
+    db = get_db().cursor()
     
+    # Fetch groups created by the user
+    groups = db.execute("SELECT id, group_name FROM groups WHERE creator_id = ?;", (session["user_id"],)).fetchall()
+    
+    # Prepare the structure to store groups and their members with total expenses
+    group_infos = []
+    for group in groups:
+        group_info = {"group_name": group["group_name"], "members_expenses": []}
 
-    return apology("TODO", 403)
+        # Fetch members and their total expenses for each group
+        members_expenses = db.execute("SELECT group_members.member_name, SUM(expenses.amount) AS total_expenses FROM expenses JOIN group_members ON expenses.group_member_id = group_members.id WHERE group_members.group_id = ? GROUP BY group_members.member_name;", (group["id"],)).fetchall()
+
+        # Add member and their total expenses to group info
+        for member_expense in members_expenses:
+            group_info["members_expenses"].append({
+                "member_name": member_expense["member_name"],
+                "total_expenses": member_expense["total_expenses"]
+            })
+
+        group_infos.append(group_info)
+
+    return render_template("index.html", group_infos=group_infos)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -289,7 +308,6 @@ def splitting():
         for member_name in selected_members:
             group_member = db.execute("SELECT id FROM group_members WHERE group_id = ? AND member_name = ?;", (group_id, member_name)).fetchone()
             group_member_id = group_member["id"]
-            db.execute("INSERT INTO expenses (group_id, group_member_id, description, amount) VALUES (?, ?, ?, ?);", (group_id, group_member_id, description, result))
 
             # Check if there is already an expense entry for this member
             existing_expense = db.execute("SELECT amount FROM expenses WHERE group_id = ? AND group_member_id = ? AND description = ?;", (group_id, group_member_id, description)).fetchone()
