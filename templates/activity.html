@@ -20,7 +20,7 @@
             <td>{{ table["group_name"] }}</td>
             <td>{{ table["group_member"] }}</td>
             <td>{{ table["description"] }}</td>
-            <td>${{ table["amount"] }}</td>
+            <td>${{ '%.2f'|format(table["amount"])}}</td>
             <td>{{ table["timestamp"] }}</td>
         </tr>
     {% endfor %}

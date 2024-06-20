@@ -4,11 +4,19 @@ import sqlite3
 from flask import Flask, flash, redirect, render_template, request, session, g
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from helpers import apology, login_required
 
 # Configure application
 app = Flask(__name__)
+
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"]
+)
 
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
@@ -37,6 +45,7 @@ def setup_db():
         print(f"An error occurred: {e}")
     finally:
         connection.close()
+        
 
 def get_db():
     """
@@ -189,6 +198,7 @@ def register():
     
 
 @app.route("/group", methods=["GET", "POST"])
+@limiter.limit("10 per minute")
 def group():
     # Create group name OR pick group and add member
     if request.method == "POST":
@@ -234,6 +244,7 @@ def group():
 
 
 @app.route("/split", methods=["GET", "POST"])
+@limiter.limit("10 per minute")
 def split():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
@@ -264,6 +275,7 @@ def split():
 
 
 @app.route("/splitting", methods=["GET", "POST"])
+@limiter.limit("10 per minute")
 def splitting():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
@@ -333,6 +345,7 @@ def splitting():
 
 
 @app.route("/pay", methods=["GET", "POST"])
+@limiter.limit("10 per minute")
 def pay():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
@@ -363,6 +376,7 @@ def pay():
 
 
 @app.route("/paying", methods=["GET", "POST"])
+@limiter.limit("10 per minute")
 def paying():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
