@@ -14,9 +14,10 @@ You can watch a demonstration video **<a href="https://youtu.be/4_yymIpAqs0">her
 - **Expense Management**: Easily pay off individual expenses.
 - **Activity Tracking**: The activity page provides a detailed view of all transactions.
 
- ### Contributions
- This application was solely done by myself for the final project for **Harvard University's CS50x**. 
- The template from "pset9 finance" was used, alongside my own flair.
+### Contributions
+This application was solely done by myself for the final project for **Harvard University's CS50x**. 
+The template from "pset9 finance" was used, alongside my own flair.
+
 ### Future Updates
 - Allow users to change/reset their passwords
 - Allow users to delete groups and members within the group
